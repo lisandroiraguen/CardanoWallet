@@ -19,22 +19,23 @@ jobs:
         with:
           submodules: true
           lfs: false
-
-      # 💡 PASO 1: Configurar Node.js (Vite/React necesita esto)
-      - name: Set up Node.js environment
+          
+      # 💡 PASO CLAVE 1: Configurar Node.js para asegurar compatibilidad con la versión (v20 o superior es bueno)
+      - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20' # Asegura una versión reciente compatible con ES2022/TLA
+          node-version: '20' 
 
-      # 💡 PASO 2: Instalar todas las dependencias, incluyendo los plugins de Vite
-      - name: Install dependencies
+      # 💡 PASO CLAVE 2: Instalar dependencias para que el runner encuentre 'vite-plugin-top-level-await'
+      - name: Install dependencies 📦
         run: npm install
-
-      # 💡 PASO 3: Ejecutar la compilación de Vite (Crea la carpeta 'dist' o 'build')
-      - name: Build project
-        run: npm run build # Asume que tu script 'build' en package.json es 'vite build'
       
-      # El paso de Azure SWA ahora solo se encargará de subir el contenido
+      # 💡 PASO CLAVE 3: Ejecutar la compilación de Vite manualmente
+      - name: Build Vite project 🏗️
+        # Asegúrate de que 'build' es 'vite build' en tu package.json
+        run: npm run build 
+
+      # PASO DE AZURE: Ahora solo sube los archivos pre-compilados
       - name: Deploy to Azure Static Web Apps
         id: builddeploy
         uses: Azure/static-web-apps-deploy@v1
@@ -43,15 +44,17 @@ jobs:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: "upload"
           
-          # **ATENCIÓN AQUÍ**
+          # **AJUSTES NECESARIOS para compilación manual**
           # ------------------------------------------------------------------
-          # Ya que compilamos manualmente, el 'app_location' debe ser la
-          # carpeta donde se ejecutan los comandos (la raíz).
-          app_location: "/" 
-          # El 'output_location' es donde el comando 'npm run build' generó los archivos.
-          # Si tu 'npm run build' genera una carpeta 'dist', cámbialo a "dist".
-          output_location: "build" 
+          # 1. Indicamos que NO queremos que Azure haga la compilación.
+          skip_app_build: true 
+          # 2. Especificamos la ubicación donde generamos los archivos (por defecto en Vite es 'dist')
+          #    NOTA: Si tu 'output_location' en vite.config.js es 'build', úsalo aquí.
+          app_location: "/"
+          output_location: "build" # <-- CAMBIA ESTO a "build" si tu vite.config.js usa "build"
           # ------------------------------------------------------------------
+
+      # ... (el resto de tu flujo de trabajo)
 
   close_pull_request_job:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
