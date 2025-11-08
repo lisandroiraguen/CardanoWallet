@@ -199,16 +199,55 @@ export const useWallet = () => {
     setError(null)
   }
 
-  useEffect(() => {
-    if (wallet) {
-      updateBalance(wallet)
-      const interval = setInterval(() => {
-        updateBalance(wallet)
-      }, 10000)
+  // Dentro de useWallet.js
+// ... después de disconnectWallet ...
 
-      return () => clearInterval(interval)
+// Nuevo useEffect para la reconexión automática/inicialización
+useEffect(() => {
+  const checkConnection = async () => {
+    // Si ya estamos conectados (esto cubre el caso de que otro useEffect lo haya hecho), salimos.
+    if (wallet) return 
+    await new Promise(resolve => setTimeout(resolve, 300));
+    // 1. Verificar si la billetera está instalada.
+    if (!checkEternlInstalled()) return 
+
+    try {
+      // 2. Intentar habilitar la billetera (esto reconecta si ya dio permiso)
+      // Usar window.cardano.eternl.isEnabled() para verificar el permiso es más seguro.
+      // Pero si usamos enable() con un try/catch, forzamos la reconexión.
+      
+      const isEnabled = await window.cardano.eternl.isEnabled()
+      
+      if (isEnabled) {
+        console.log('🔄 [DEBUG] Intentando reconexión silenciosa...')
+        const api = await window.cardano.eternl.enable() // Re-habilitar
+        
+        // 3. ACTUALIZAR ESTADOS (¡Esto fuerza el re-renderizado!)
+        setWallet(api) 
+        
+        const addresses = await api.getUsedAddresses()
+        if (addresses && addresses.length > 0) {
+          setWalletAddress(addresses[0])
+        }
+
+        const networkId = await api.getNetworkId()
+        setNetwork(getNetworkName(networkId))
+        
+        // 4. Actualizar el balance después de la reconexión
+        await updateBalance(api)
+        
+      }
+    } catch (err) {
+      console.warn('⚠️ [DEBUG] No se pudo reconectar automáticamente (puede que el permiso haya sido revocado o no se haya dado):', err)
+      // No seteamos un error visible si solo es una falta de permiso de reconexión.
     }
-  }, [wallet])
+  }
+
+  checkConnection()
+}, []) // Array de dependencias vacío para que se ejecute solo al montar.
+
+
+
 
   return {
     wallet,
