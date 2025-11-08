@@ -1,4 +1,8 @@
 # Cardano Wallet
+
+<img width="620" height="822" alt="image" src="https://github.com/user-attachments/assets/3f727f98-1e48-45e0-bf7a-f23cf567b24c" />
+
+
 https://thankful-field-06bc7fa0f.3.azurestaticapps.net/
 
 Una aplicación React de wallet de Cardano estilo fintech que se conecta con Eternl wallet para mostrar tu balance de ADA en testnet.
