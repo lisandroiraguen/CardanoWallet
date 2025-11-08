@@ -11,13 +11,14 @@ on:
 
 jobs:
   build_and_deploy_job:
-    # ... (conditions and runs-on remains the same)
+    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'closed')
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
         with:
           submodules: true
           lfs: false
-
+      
       # 💡 STEP 1 & 2 COMBINED: Set up Node and Install Dependencies
       # We use Node 20 as it is stable and supports necessary features.
       - name: Setup Node & Install dependencies 📦
