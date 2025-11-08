@@ -1,16 +1,22 @@
 import { defineConfig } from 'vite'
 import wasm from 'vite-plugin-wasm' // <-- 1. Importa el plugin
 import react from '@vitejs/plugin-react'
+import topLevelAwait from 'vite-plugin-top-level-await'
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [react(), wasm()],
+  plugins: [    
+     wasm(),
+     topLevelAwait(),
+     react()
+    ],
   server: {
     port: 3000,
     host: true
   },
   build: {
-    sourcemap: true
+    sourcemap: true,
+    target: 'es2022'
   }
 })
 
