@@ -15,6 +15,7 @@ export default defineConfig({
     host: true
   },
   build: {
+    outDir: 'build',
     sourcemap: true,
     target: 'es2022'
   }
