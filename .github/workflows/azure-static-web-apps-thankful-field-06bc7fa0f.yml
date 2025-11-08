@@ -19,19 +19,39 @@ jobs:
         with:
           submodules: true
           lfs: false
-      - name: Build And Deploy
+
+      # 💡 PASO 1: Configurar Node.js (Vite/React necesita esto)
+      - name: Set up Node.js environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20' # Asegura una versión reciente compatible con ES2022/TLA
+
+      # 💡 PASO 2: Instalar todas las dependencias, incluyendo los plugins de Vite
+      - name: Install dependencies
+        run: npm install
+
+      # 💡 PASO 3: Ejecutar la compilación de Vite (Crea la carpeta 'dist' o 'build')
+      - name: Build project
+        run: npm run build # Asume que tu script 'build' en package.json es 'vite build'
+      
+      # El paso de Azure SWA ahora solo se encargará de subir el contenido
+      - name: Deploy to Azure Static Web Apps
         id: builddeploy
         uses: Azure/static-web-apps-deploy@v1
         with:
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_THANKFUL_FIELD_06BC7FA0F }}
-          repo_token: ${{ secrets.GITHUB_TOKEN }} # Used for Github integrations (i.e. PR comments)
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: "upload"
-          ###### Repository/Build Configurations - These values can be configured to match your app requirements. ######
-          # For more information regarding Static Web App workflow configurations, please visit: https://aka.ms/swaworkflowconfig
-          app_location: "/" # App source code path
-          api_location: "" # Api source code path - optional
-          output_location: "build" # Built app content directory - optional
-          ###### End of Repository/Build Configurations ######
+          
+          # **ATENCIÓN AQUÍ**
+          # ------------------------------------------------------------------
+          # Ya que compilamos manualmente, el 'app_location' debe ser la
+          # carpeta donde se ejecutan los comandos (la raíz).
+          app_location: "/" 
+          # El 'output_location' es donde el comando 'npm run build' generó los archivos.
+          # Si tu 'npm run build' genera una carpeta 'dist', cámbialo a "dist".
+          output_location: "build" 
+          # ------------------------------------------------------------------
 
   close_pull_request_job:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
