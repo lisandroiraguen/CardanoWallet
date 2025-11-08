@@ -11,50 +11,48 @@ on:
 
 jobs:
   build_and_deploy_job:
-    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'closed')
-    runs-on: ubuntu-latest
-    name: Build and Deploy Job
+    # ... (conditions and runs-on remains the same)
     steps:
       - uses: actions/checkout@v3
         with:
           submodules: true
           lfs: false
-          
-      # 💡 PASO CLAVE 1: Configurar Node.js para asegurar compatibilidad con la versión (v20 o superior es bueno)
-      - name: Set up Node.js
+
+      # 💡 STEP 1 & 2 COMBINED: Set up Node and Install Dependencies
+      # We use Node 20 as it is stable and supports necessary features.
+      - name: Setup Node & Install dependencies 📦
         uses: actions/setup-node@v4
         with:
-          node-version: '20' 
+          node-version: '20' # Use a specific, modern version
 
-      # 💡 PASO CLAVE 2: Instalar dependencias para que el runner encuentre 'vite-plugin-top-level-await'
-      - name: Install dependencies 📦
-        run: npm install
-      
-      # 💡 PASO CLAVE 3: Ejecutar la compilación de Vite manualmente
+      # Explicitly install modules right after Node setup
+      - name: Explicitly Install Modules
+        run: npm install 
+        # Adding '--prefix .' ensures installation happens in the current directory,
+        # but standard 'npm install' should suffice in a clean checkout.
+
+      # 💡 STEP 3: Manually Build Vite
       - name: Build Vite project 🏗️
-        # Asegúrate de que 'build' es 'vite build' en tu package.json
+        # This confirms that 'vite-plugin-top-level-await' is now available
         run: npm run build 
-
-      # PASO DE AZURE: Ahora solo sube los archivos pre-compilados
+        
+      # 💡 STEP 4: Deploy to Azure Static Web Apps (SWA)
       - name: Deploy to Azure Static Web Apps
         id: builddeploy
         uses: Azure/static-web-apps-deploy@v1
         with:
-          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_THANKFUL_FIELD_06BC7FA0F }}
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          # ... (your secrets and tokens remain the same) ...
           action: "upload"
           
-          # **AJUSTES NECESARIOS para compilación manual**
-          # ------------------------------------------------------------------
-          # 1. Indicamos que NO queremos que Azure haga la compilación.
+          # Tell SWA NOT to build anything, just upload what we built.
           skip_app_build: true 
-          # 2. Especificamos la ubicación donde generamos los archivos (por defecto en Vite es 'dist')
-          #    NOTA: Si tu 'output_location' en vite.config.js es 'build', úsalo aquí.
-          app_location: "/"
-          output_location: "build" # <-- CAMBIA ESTO a "build" si tu vite.config.js usa "build"
-          # ------------------------------------------------------------------
-
-      # ... (el resto de tu flujo de trabajo)
+          
+          # The location where your commands run (root of the repo)
+          app_location: "/" 
+          
+          # Check your vite.config.js/package.json for the actual output folder!
+          # It's usually 'dist' for Vite, but your previous template said 'build'.
+          output_location: "build"
 
   close_pull_request_job:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
