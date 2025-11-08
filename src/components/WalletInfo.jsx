@@ -5,8 +5,8 @@ export const WalletInfo = ({ wallet, walletAddress, network, adaBalance }) => {
 
   return (
     <>
-      <div className="mb-6">
-        <div className="flex items-center justify-between mb-4">
+      <div className="mb-6 mt-5">
+        <div className="flex items-center justify-between ml-2">
           <h3 className="text-lg font-semibold">Mis Activos</h3>
         </div>
         <div className="bg-gray-800/50 hover:bg-gray-700/50 rounded-xl p-4 border border-blue-500/50 transition-all">
