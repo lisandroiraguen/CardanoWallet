@@ -26,16 +26,16 @@ jobs:
         with:
           node-version: '20' # Use a specific, modern version
 
-      # Explicitly install modules right after Node setup
-      - name: Explicitly Install Modules
-        run: npm install 
-        # Adding '--prefix .' ensures installation happens in the current directory,
-        # but standard 'npm install' should suffice in a clean checkout.
+      - name: Install all dependencies
+        run: npm install
 
-      # 💡 STEP 3: Manually Build Vite
+      # LUEGO instalar específicamente el plugin faltante si es necesario
+      - name: Install missing vite plugin
+        run: npm install vite-plugin-top-level-await --save-dev
+
       - name: Build Vite project 🏗️
-        # This confirms that 'vite-plugin-top-level-await' is now available
         run: npm run build 
+        
         
       # 💡 STEP 4: Deploy to Azure Static Web Apps (SWA)
       - name: Deploy to Azure Static Web Apps
